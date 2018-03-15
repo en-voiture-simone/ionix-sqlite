@@ -58,11 +58,43 @@ function openCordovaDatabase(name: string): Promise<SqlDatabase> {
   });
 }
 
+function openIndexedDB(name: string): Promise<SqlDatabase>{
+    return new Promise((resolve, reject) => {
+        try {
+            console.info('[ionix-sqlite] using IndexedDB with:')
+            console.log(window);
+            console.log('=================')
+            var dbRq = indexedDB.open(name, 1)
+            console.log(">>>> PLEEEEEEEAAAASSSSEEE")
+            dbRq.onerror = (event) => {
+                reject(event);
+            }
+            dbRq.onsuccess = event => {
+                const interval = setInterval(() => {
+                    console.log('YEAHHHHHHH')
+                    const db = dbRq.result;
+                    console.info(dbRq)
+                    console.log(dbRq.readyState)
+                    if (dbRq.readyState == 'done') {
+                        console.log("DONE!!!!")
+                        console.log(db)
+                        clearInterval(interval);
+                        resolve(new SqlDatabase(db));
+                    }
+                }, 2000)
+            }
+            console.log(dbRq)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 declare function openDatabase(name: string, version: string, desc: string, size: number): any;
 
 function openBrowserDatabase(name: string): Promise<SqlDatabase> {
-    if (typeof sqlitePlugin !== 'undefined') {
-      return openCordovaDatabase(name);
+    if (typeof openDatabase === 'undefined') {
+      return openIndexedDB(name);
     }else{
       return new Promise((resolve, reject) => {
         try {
